@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { ProductionGlobe } from './ProductionGlobe';
 import { calculateProduction, countries, defaultInputs, indicationIds, patientInputs, sourceScenario, type PatientInputs, type ProductionInputs, type ProductionYear } from './production';
 import type { IndicationId } from '../model/types';
@@ -10,11 +10,21 @@ const compactMoney = (value: number) => value >= 1e6 ? `$${number(value / 1e6, 1
 const labels: Record<IndicationId, string> = { gbm: 'Glioblastoma', brainMetastasis: 'Brain metastases', opbt: 'Other primary brain tumors' };
 
 function Field({ label, value, onChange, suffix, min = 0, max = 1e9, step = 'any', hint }: { label: string; value: number; onChange: (value: number) => void; suffix?: string; min?: number; max?: number; step?: number | 'any'; hint?: string }) {
-  return <label className="field"><span>{label}</span><div className="number-field"><input type="number" value={value} min={min} max={max} step={step} onChange={(event) => {
-    if (event.target.value === '') return;
-    const next = Number(event.target.value);
-    if (Number.isFinite(next)) onChange(Math.max(min, Math.min(max, next)));
-  }} />{suffix && <span aria-hidden="true">{suffix}</span>}</div>{hint && <small>{hint}</small>}</label>;
+  const [draft, setDraft] = useState(String(value));
+  useEffect(() => setDraft(String(value)), [value]);
+  const commit = () => {
+    const parsed = Number(draft.replace(',', '.'));
+    const next = draft.trim() && Number.isFinite(parsed) ? Math.max(min, Math.min(max, parsed)) : value;
+    onChange(Number(next));
+    setDraft(String(next));
+  };
+  return <label className="field"><span>{label}</span><div className="number-field"><input type="text" inputMode={step === 1 ? 'numeric' : 'decimal'} value={draft} onChange={(event) => {
+    const raw = event.target.value;
+    if (!/^-?\d*(?:[.,]\d*)?$/.test(raw)) return;
+    setDraft(raw);
+    const parsed = Number(raw.replace(',', '.'));
+    if (raw && Number.isFinite(parsed) && parsed >= min && parsed <= max) onChange(parsed);
+  }} onBlur={commit} onKeyDown={(event) => { if (event.key === 'Enter') event.currentTarget.blur(); if (event.key === 'Escape') setDraft(String(value)); }} />{suffix && <span aria-hidden="true">{suffix}</span>}</div>{hint && <small>{hint}</small>}</label>;
 }
 
 function RevenueChart({ years, selected, onSelect }: { years: ProductionYear[]; selected: number; onSelect: (index: number) => void }) {
@@ -100,7 +110,7 @@ export default function TemodexApp() {
   const reset = () => { setInputs(defaultInputs()); setFocused('MEX'); setFocusVersion((current) => current + 1); setYearIndex(0); setSearch(''); };
 
   return <div className="temodex-app">
-    <header className="app-header"><div className="brand"><span className="brand-symbol" aria-hidden="true">t<span>+</span></span><div><h1>Temodex<span>Early Access Program</span></h1></div></div><div className="header-actions"><span className="dev-badge"><i />Development model</span><button type="button" className="text-button" onClick={() => downloadCsv(inputs, years)}>Export CSV <span aria-hidden="true">↗</span></button></div></header>
+    <header className="app-header"><div className="brand"><img className="company-logo" src={`${import.meta.env.BASE_URL}DBP_Logo_New.png`} alt="Double Bond Pharmaceutical" width="1459" height="322" /><div><h1>Temodex<span>Early Access Program</span></h1></div></div><div className="header-actions"><span className="dev-badge"><i />Development model</span><button type="button" className="text-button" onClick={() => downloadCsv(inputs, years)}>Export CSV <span aria-hidden="true">↗</span></button></div></header>
     <div className="model-layout">
       <aside className="controls" aria-label="Model assumptions">
         <div className="control-heading"><h2>Production assumptions</h2><button type="button" className="text-button muted" onClick={reset}>Reset</button></div>
