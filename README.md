@@ -16,7 +16,7 @@ The model uses eligible patients directly. It does not apply the SI-053 commerci
 
 Patient assumptions reproduce the original model's population, incidence, access and surgery calculations. Mexico and many other country inputs are inherited planning proxies, not validated Temodex estimates. Other primary brain tumors use the original placeholder incidence. Incidence and surgery eligibility can be edited separately for each selected indication and focused country.
 
-Initial values are illustrative: $500 COGS per product, 20% overhead markup, 0.1% patient share, zero annual scale-up, and a 2027–2036 horizon. Overhead is a markup on COGS, not margin on selling price or net profit. Volumes remain fractional expected values so small patient shares do not disappear through premature rounding.
+Initial values are illustrative: $500 COGS per product, 20% overhead markup, 0.1% patient share, zero annual scale-up, and a 2027–2036 horizon. Overhead is a markup on COGS, not margin on selling price or net profit. Products are rounded to the nearest whole unit per country and year before COGS, overhead and payment are calculated. Total products sum those country quantities.
 
 ## Interface
 

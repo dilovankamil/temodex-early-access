@@ -94,7 +94,7 @@ export function calculateProduction(inputs: ProductionInputs): ProductionYear[] 
         eligiblePatients += incident * pct(patient.accessPct) * pct(patient.surgeryPct[id]);
       });
       const suppliedPatients = eligiblePatients * coveragePct / 100;
-      const products = suppliedPatients * finite(inputs.unitsPerPatient, 0, 1000);
+      const products = Math.round(suppliedPatients * finite(inputs.unitsPerPatient, 0, 1000));
       const costReimbursement = products * cogs;
       const overhead = costReimbursement * overheadRate;
       return { countryId: country.id, year, population, incidentPatients, eligiblePatients, suppliedPatients, products, costReimbursement, overhead, payment: costReimbursement + overhead };

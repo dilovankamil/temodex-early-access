@@ -12,8 +12,8 @@ describe('Temodex manufacturer payment', () => {
     const eligible = calculateModel(original).years[0].eligiblePatients;
     const row = calculateProduction({ ...defaultInputs(), years: 1 })[0];
     expect(row.eligiblePatients).toBeCloseTo(eligible, 10);
-    expect(row.products).toBeCloseTo(eligible * 0.001, 10);
-    expect(row.payment).toBeCloseTo(eligible * 0.001 * 500 * 1.2, 10);
+    expect(row.products).toBe(Math.round(eligible * 0.001));
+    expect(row.payment).toBeCloseTo(Math.round(eligible * 0.001) * 500 * 1.2, 10);
     expect(row.payment).toBeCloseTo(row.costReimbursement + row.overhead, 10);
   });
 
@@ -30,9 +30,22 @@ describe('Temodex manufacturer payment', () => {
   it('uses a markup on COGS, not a margin on payment, and scales products per patient', () => {
     const base = calculateProduction(defaultInputs())[0];
     const row = calculateProduction({ ...defaultInputs(), overheadPct: 25, unitsPerPatient: 2 })[0];
-    expect(row.costReimbursement).toBeCloseTo(base.costReimbursement * 2, 10);
+    expect(row.costReimbursement).toBeCloseTo(Math.round(base.suppliedPatients * 2) * 500, 10);
     expect(row.overhead).toBeCloseTo(row.costReimbursement * 0.25, 10);
     expect(row.overhead / row.payment).toBeCloseTo(0.2, 10);
+  });
+
+  it('rounds products per country before summing and uses those quantities for payment', () => {
+    const result = calculateProduction({ ...defaultInputs(), countryIds: ['MEX', 'USA', 'SWE'], coveragePct: 0.1 });
+    for (const year of result) {
+      expect(Number.isInteger(year.products)).toBe(true);
+      expect(year.products).toBe(year.countries.reduce((sum, row) => sum + row.products, 0));
+      for (const row of year.countries) {
+        expect(row.products).toBe(Math.round(row.suppliedPatients));
+        expect(row.costReimbursement).toBe(row.products * 500);
+        expect(row.payment).toBeCloseTo(row.products * 600, 10);
+      }
+    }
   });
 
   it('caps scale-up at eligible patients and never produces negative or nonfinite receipts', () => {
