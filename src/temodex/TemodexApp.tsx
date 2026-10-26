@@ -121,6 +121,8 @@ export default function TemodexApp() {
         </section>
         <section className="control-section">
           <Field label="Share of eligible patients" value={inputs.coveragePct} onChange={(value) => update('coveragePct', value)} suffix="%" max={100} step={0.1} />
+          <div className="unit-payment" aria-live="polite"><span>Total eligible patients · {year.year}</span><strong>{number(year.eligiblePatients, 0)}</strong></div>
+          <span className="panel-subtitle">All selected countries and indications</span>
           <div className="quick-values">{[0.1, 1, 5].map((value) => <button type="button" key={value} className={inputs.coveragePct === value ? 'active' : ''} aria-pressed={inputs.coveragePct === value} onClick={() => update('coveragePct', value)}>{value}%</button>)}</div>
           <Field label="Annual scale-up" value={inputs.annualScalePct} onChange={(value) => update('annualScalePct', value)} suffix="%" max={1000} hint="Growth in patient share; capped at 100%." />
           <div className="field-pair"><Field label="First supply year" value={inputs.startYear} onChange={(value) => update('startYear', Math.round(value))} min={2026} max={2100} step={1} /><label className="field"><span>Forecast</span><select value={inputs.years} onChange={(event) => update('years', +event.target.value)}>{[3, 5, 10, 15, 20].map((value) => <option value={value} key={value}>{value} years</option>)}</select></label></div>
